@@ -17,7 +17,7 @@ Match3.Board = function(state, rows, cols, blockVariations){
 
     //when blocks are needed
     this.reserveGrid = [];
-    this.RESERVE_ROW = 5;
+    this.RESERVE_ROW = rows;
 
     for(i = 0; i < this.RESERVE_ROW; i++){
         this.reserveGrid.push([]);
@@ -157,4 +157,37 @@ Match3.Board.prototype.dropBlock = function(sourceRow, targetRow, col){
 Match3.Board.prototype.dropReserveBlock = function(sourceRow, targetRow, col){
     this.grid[targetRow][col] = this.reserveGrid[sourceRow][col];
     this.reserveGrid[sourceRow][col] = 0;
+};
+
+//move down blocks to fill empty spaces
+Match3.Board.prototype.updateGrid = function(){
+    var i, j, k, foundBlock;
+    //var foundBlock = false;
+    for(i = this.rows -1 ; i >=0; i--){
+        for(j = 0; j< this.cols; j++){
+            //if block = 0 then get first none zero and climb up to get non zero
+            if(this.grid[i][j]===0){
+                foundBlock = false;
+
+                //climb in main grid
+                for(k = i - 1; k >= 0; k--){
+                    if(this.grid[k][j] > 0){
+                        this.dropBlock(k, i, j);
+                        foundBlock = true;
+                        break;
+                    }
+                }
+            }
+            if(!foundBlock){
+                //climb up in reserve grid
+                for(k = this.RESERVE_ROW - 1; k >= 0; k--){
+                    if(this.reserveGrid[k][j] > 0){
+                        this.dropReserveBlock(k, i, j);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    this.populateReserveGrid();
 };
